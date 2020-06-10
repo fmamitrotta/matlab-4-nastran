@@ -1,0 +1,3 @@
+[submodule "nice-matlab-figures"]
+	path = nice-matlab-figures
+	url = https://github.com/fmamitrotta/nice-matlab-figures.git

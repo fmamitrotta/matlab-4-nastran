@@ -3,8 +3,7 @@
 % Add matlab-4-nastran folder and subfolders to Matlab path
 addpath(genpath(['..',filesep,'..']));
 % Path to Nastran executable
-nastranExecutblePath = ['C:\MSC.Software\MSC_Nastran_and_Patran_',...
-    'Student_Editions\20190\Nastran\bin\nastranw.exe'];
+nastranExecutblePath = 'type-your-path-to-nastran-executable';
 
 %% Convert Proteus to Nastran model
 Proteus2Nastran

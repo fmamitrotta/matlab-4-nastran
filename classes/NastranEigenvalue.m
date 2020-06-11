@@ -1,0 +1,206 @@
+classdef NastranEigenvalue < matlab.mixin.Copyable
+    
+    %% Properties
+    properties
+        ParentSubcase = NastranSubcaseResult;
+        ModeNo
+        ExtractionOrder
+        Eigenvalue
+        Radians
+        Cycles
+        GeneralizedMass
+        GeneralizedStiffness
+        EigenvectorArray        % array of NastranDisplacement objects
+        StrainInElementArray    % array of NastranStrainInElement objects
+        StressInElementArray    % array of NastranStressInElement objcets
+    end
+    
+    methods
+        %% Constructor
+        function obj = NastranEigenvalue(eigenvalueStruct)
+            %NastranEigenvalue Construct an instance of this class
+            
+            % If number of input arguments is not zero then initialize the
+            % object array with the size of the input structure
+            if nargin ~= 0
+                [m,n] = size(eigenvalueStruct);
+                obj(m,n) = NastranEigenvalue;
+                
+                % Iterate through the elements of the input structure
+                for i = m:-1:1
+                    for j = n:-1:1
+                        if isfield(eigenvalueStruct,'modeNo')
+                            obj(i,j).ModeNo =...
+                                eigenvalueStruct(i,j).modeNo;
+                        end
+                        if isfield(...
+                                eigenvalueStruct,'extractionOrder')
+                            obj(i,j).ExtractionOrder =...
+                                eigenvalueStruct(i,j).extractionOrder;
+                        end
+                        if isfield(eigenvalueStruct,'eigenvalue')
+                            obj(i,j).Eigenvalue =...
+                                eigenvalueStruct(i,j).eigenvalue;
+                        end
+                        if isfield(eigenvalueStruct,'radians')
+                            obj(i,j).Radians =...
+                                eigenvalueStruct(i,j).radians;
+                        end
+                        if isfield(eigenvalueStruct,'cycles')
+                            obj(i,j).Cycles =...
+                                eigenvalueStruct(i,j).cycles;
+                        end
+                        if isfield(eigenvalueStruct,'generalizedMass')
+                            obj(i,j).GeneralizedMass =...
+                                eigenvalueStruct(i,j).generalizedMass;
+                        end
+                        if isfield(eigenvalueStruct,'generalizedStiffness')
+                            obj(i,j).GeneralizedStiffness =...
+                                eigenvalueStruct(i,j).generalizedStiffness;
+                        end
+                        if isfield(eigenvalueStruct,'eigenvectorArray')
+                            obj(i,j).EigenvectorArray =...
+                                eigenvalueStruct(i,j).eigenvectorArray;
+                        end
+                    end
+                end
+            end
+        end
+        
+        %% EigenvectorArray set method
+        function set.EigenvectorArray(obj,displacementArray)
+            obj.EigenvectorArray = displacementArray;
+            % Assign current NastranEigenvalue object as parent of all
+            % NastranDisplacement objects in input
+            parentEigenvalueArray = num2cell(repmat(obj,...
+                size(displacementArray,1),...
+                size(displacementArray,2)));
+            [obj.EigenvectorArray.ParentEigenvalue] =...
+                parentEigenvalueArray{:};
+        end
+        
+        %% StrainInElementArray set method
+        function set.StrainInElementArray(obj,strainInElementArray)
+            obj.StrainInElementArray = strainInElementArray;
+            % Assign current NastranEigenvalue object as parent of all
+            % NastranStrainInElement objects in input
+            parentEigenvalueArray = num2cell(repmat(obj,...
+                size(strainInElementArray,1),...
+                size(strainInElementArray,2)));
+            [obj.StrainInElementArray.ParentEigenvalue] =...
+                parentEigenvalueArray{:};
+        end
+        
+        %% StressInElementArray set method
+        function set.StressInElementArray(obj,stressInElementArray)
+            obj.StressInElementArray = stressInElementArray;
+            % Assign current NastranEigenvalue object as parent of all
+            % NastranStrressInElement objects in input
+            parentEigenvalueArray = num2cell(repmat(obj,...
+                size(stressInElementArray,1),...
+                size(stressInElementArray,2)));
+            [obj.StressInElementArray.ParentEigenvalue] =...
+                parentEigenvalueArray{:};
+        end
+        
+        %% Plot mode number versus the corresponding frequency
+        function plotModeNoVsFrequency(obj)
+            scatter([obj.ModeNo],[obj.Cycles],'x')
+            % Make plot nicer adding title, axis labels and legend
+            plotSpecificationStruct = struct(...
+                'txtTitle','Frequencies from Eigenvalue Analysis',...
+                'txtXlabel','Mode No',...
+                'txtYlabel','Frequency [Hz]');
+            makePlotNicer(plotSpecificationStruct)
+        end
+        
+        %% Plot mode shape
+        function plotModeShape(obj)
+            % Generate figure and hold axes
+            figure
+            hold on
+            % Get all cquad4 and ctria3 elements of current object
+            cquad4Vector =...
+                obj.ParentSubcase.ParentAnalysis.BulkData.PartArray.getAllCquad4Elements;
+            ctria3Vector =...
+                obj.ParentSubcase.ParentAnalysis.BulkData.PartArray.getAllCtria3Elements;
+            if ~isempty(cquad4Vector)
+                % If Cquad4 elements are present in current part,
+                % retrieve displaced coordinates of the grid points
+                gridIdArray = [[cquad4Vector.G1];[cquad4Vector.G2];...
+                    [cquad4Vector.G3];[cquad4Vector.G4]];
+                parentGridArray = [obj.EigenvectorArray.ParentGrid];
+                [~,eigenvector2GridIdMapArray] =...
+                    ismember(gridIdArray,[parentGridArray.Id]);
+                xCquad4 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX1],...
+                    size(gridIdArray,1),[]);
+                yCquad4 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX2],...
+                    size(gridIdArray,1),[]);
+                zCquad4 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX3],...
+                    size(gridIdArray,1),[]);
+                translationMagnitudeVector = vecnorm(...
+                    [mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T1...
+                    ],size(gridIdArray,1),[]),1);...
+                    mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T2...
+                    ],size(gridIdArray,1),[]),1);...
+                    mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T3...
+                    ],size(gridIdArray,1),[]),1)]);
+                % Plot the displaced elements coloured by the translation
+                % magnitude
+                fill3(xCquad4,yCquad4,zCquad4,...
+                    translationMagnitudeVector*1e3)
+            end
+            if ~isempty(ctria3Vector)
+                % If Ctria3 elements are present in current part,
+                % retrieve displaced coordinates of the grid points
+                gridIdArray = [[ctria3Vector.G1];[ctria3Vector.G2];...
+                    [ctria3Vector.G3]];
+                parentGridArray = [obj.EigenvectorArray.ParentGrid];
+                [~,eigenvector2GridIdMapArray] =...
+                    ismember(gridIdArray,[parentGridArray.Id]);
+                xCtria3 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX1],...
+                    size(gridIdArray,1),[]);
+                yCtria3 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX2],...
+                    size(gridIdArray,1),[]);
+                zCtria3 = reshape([obj.EigenvectorArray(...
+                    eigenvector2GridIdMapArray).DisplacedX3],...
+                    size(gridIdArray,1),[]);
+                translationMagnitudeVector = vecnorm(...
+                    [mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T1...
+                    ],size(gridIdArray,1),[]),1);...
+                    mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T2...
+                    ],size(gridIdArray,1),[]),1);...
+                    mean(reshape(...
+                    [obj.EigenvectorArray(eigenvector2GridIdMapArray).T3...
+                    ],size(gridIdArray,1),[]),1)]);
+                % Plot the displaced elements coloured by the translation
+                % magnitude
+                fill3(xCtria3,yCtria3,zCtria3,...
+                    translationMagnitudeVector*1e3)
+            end
+            % Set the default three-dimensional view
+            view(3)
+            % Set axis style
+            axis image
+            % Set colorbar
+            c = colorbar;
+            c.Label.String = 'Translation magnitude, mm';
+            % Make plot nicer adding title, axis labels and legend
+            plotSpecificationStruct = struct(...
+                'txtXlabel','$x$, m',...
+                'txtYlabel','$y$, m',...
+                'txtZlabel','$z$, m');
+            makePlotNicer(plotSpecificationStruct)
+        end
+    end
+end

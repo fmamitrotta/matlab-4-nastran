@@ -22,6 +22,9 @@ git clone https://github.com/fmamitrotta/matlab-4-nastran.git
 
 3. Try some of the example scripts to get an understanding of the framework. Enjoy!
 
+***Disclaimer: `matlab-4-nastran` is not a model generator!***
+`matlab-4-nastran` only provides an object-oriented interface to Nastran to better manage input and output data. It is up to the user to construct an input model for simulations in Nastran using the provided classes.
+
 ## Contributing
 Please don't hesistate to throw feedback and suggestions. Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 

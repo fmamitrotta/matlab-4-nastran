@@ -7,8 +7,7 @@ addpath(genpath(['..',filesep,'..']));
 nastranExecutblePath = 'type-your-path-to-nastran-executable';
 
 %% Excel input file name
-excelFilePath = ['F:\Users\fmami\Documents\TUDelft\Thesis\FEM\FlatPlate',...
-    filesep,'FlatPlateInput.xlsx'];
+excelFilePath = ['.',filesep,'FlatPlateInput.xlsx'];
 
 %% Load input data
 flatPlateSettingStruct = loadFlatPlateSettings(excelFilePath);

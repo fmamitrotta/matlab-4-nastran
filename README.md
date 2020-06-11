@@ -4,6 +4,9 @@ Object-oriented Matlab framework for the manipulation of Nastran input models an
 ## Motivation
 This project was created as a follow-up of my work for several tasks dealing with aeroelastic analyses with MSC Nastran. The motivation behind the creation and maintenance of this project stems from the desire to have an object-oriented framework to manage input and output data of simulations in Nastran. Such object-oriented framework is considered to give advantages in terms of modularity and flexibility, together with the convenient opportunity to track the dependencies of the elements composing the computational model. A big step towards the formalization of this framework was made while working on a research project at TU Delft involving the design of an aeroelastically tailored wing. This research project ended up in a [paper for SciTech 2020](https://arc.aiaa.org/doi/abs/10.2514/6.2020-1636), where the framework is partially explained.
 
+## Features
+<img src="./FrameworkIllustration.PNG" align="center">
+
 ## Installation
 ***Warning: you must have Nastran already installed in your computer to use the framework!***
 
